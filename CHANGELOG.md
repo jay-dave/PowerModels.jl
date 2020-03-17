@@ -2,6 +2,9 @@ PowerModels.jl Change Log
 =========================
 
 ### Staged
+- Drop support for JuMP v0.19, v0.20
+
+### Staged
 - Add export of `optimizer_with_attributes`
 - Add support for building storage models with branch flow formulations (#676)
 - A linear branch flow formulation was added (#676)

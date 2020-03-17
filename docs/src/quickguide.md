@@ -6,19 +6,19 @@ Once PowerModels is installed, Ipopt is installed, and a network data file (e.g.
 using PowerModels
 using Ipopt
 
-run_ac_opf("matpower/case3.m", with_optimizer(Ipopt.Optimizer))
+run_ac_opf("matpower/case3.m", Ipopt.Optimizer)
 ```
 
 Similarly, a DC Optimal Power Flow can be executed with
 
 ```julia
-run_dc_opf("matpower/case3.m", with_optimizer(Ipopt.Optimizer))
+run_dc_opf("matpower/case3.m", Ipopt.Optimizer)
 ```
 
 PTI `.raw` files in the PSS(R)E v33 specification can be run similarly, e.g. in the case of an AC Optimal Power Flow
 
 ```julia
-run_ac_opf("case3.raw", with_optimizer(Ipopt.Optimizer))
+run_ac_opf("case3.raw", Ipopt.Optimizer)
 ```
 
 ## Getting Results
@@ -26,7 +26,7 @@ run_ac_opf("case3.raw", with_optimizer(Ipopt.Optimizer))
 The run commands in PowerModels return detailed results data in the form of a dictionary. Results dictionaries from either Matpower `.m` or PTI `.raw` files will be identical in format. This dictionary can be saved for further processing as follows,
 
 ```julia
-result = run_ac_opf("matpower/case3.m", with_optimizer(Ipopt.Optimizer))
+result = run_ac_opf("matpower/case3.m", Ipopt.Optimizer)
 ```
 
 For example, the algorithm's runtime and final objective value can be accessed with,
@@ -52,27 +52,39 @@ The function `run_ac_opf` and `run_dc_opf` are shorthands for a more general for
 For example, `run_ac_opf` is equivalent to,
 
 ```julia
-run_opf("matpower/case3.m", ACPPowerModel, with_optimizer(Ipopt.Optimizer))
+run_opf("matpower/case3.m", ACPPowerModel, Ipopt.Optimizer)
 ```
 
 where "ACPPowerModel" indicates an AC formulation in polar coordinates.  This more generic `run_opf()` allows one to solve an OPF problem with any power network formulation implemented in PowerModels.  For example, an SOC Optimal Power Flow can be run with,
 
 ```julia
-run_opf("matpower/case3.m", SOCWRPowerModel, with_optimizer(Ipopt.Optimizer))
+run_opf("matpower/case3.m", SOCWRPowerModel, Ipopt.Optimizer)
 ```
 
+
+## Setting Solver Parameters
+
+The function `optimizer_with_attributes` can be used to set solver parameters,
+
+```julia
+run_opf("matpower/case3.m", ACPPowerModel, optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0))
+```
+
+In this example, setting the "print_level" attribute to 0 turns off the terminal output of the Ipopt solver.
+
+
 ## Modifying Network Data
-The following example demonstrates one way to perform multiple PowerModels solves while modifing the network data in Julia,
+The following example demonstrates one way to perform multiple PowerModels solves while modifying the network data in Julia,
 
 ```julia
 network_data = PowerModels.parse_file("matpower/case3.m")
 
-run_opf(network_data, ACPPowerModel, with_optimizer(Ipopt.Optimizer))
+run_opf(network_data, ACPPowerModel, Ipopt.Optimizer)
 
 network_data["load"]["3"]["pd"] = 0.0
 network_data["load"]["3"]["qd"] = 0.0
 
-run_opf(network_data, ACPPowerModel, with_optimizer(Ipopt.Optimizer))
+run_opf(network_data, ACPPowerModel, Ipopt.Optimizer)
 ```
 
 Network data parsed from PTI `.raw` files supports data extensions, i.e. data fields that are within the PSS(R)E specification, but not used by PowerModels for calculation. This can be achieved by
@@ -86,7 +98,7 @@ This network data can be modified in the same way as the previous Matpower `.m` 
 ## Inspecting AC and DC branch flow results
 The flow AC and DC branch results are written to the result by default. The following can be used to inspect the flow results:
 ```julia
-result = run_opf("matpower/case3_dc.m", ACPPowerModel, with_optimizer(Ipopt.Optimizer))
+result = run_opf("matpower/case3_dc.m", ACPPowerModel, Ipopt.Optimizer)
 result["solution"]["dcline"]["1"]
 result["solution"]["branch"]["2"]
 ```
@@ -106,7 +118,7 @@ pm = instantiate_model("matpower/case3.m", ACPPowerModel, PowerModels.build_opf)
 
 print(pm.model)
 
-result = optimize_model!(pm, optimizer=with_optimizer(Ipopt.Optimizer))
+result = optimize_model!(pm, optimizer=Ipopt.Optimizer)
 ```
 
 Alternatively, you can further break it up by parsing a file into a network data dictionary, before passing it on to `instantiate_model()` like so
@@ -118,5 +130,5 @@ pm = instantiate_model(network_data, ACPPowerModel, PowerModels.build_opf)
 
 print(pm.model)
 
-result = optimize_model!(pm, optimizer=with_optimizer(Ipopt.Optimizer))
+result = optimize_model!(pm, optimizer=Ipopt.Optimizer)
 ```
